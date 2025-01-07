@@ -21,10 +21,11 @@ void clear_bss() {
 int main(void) {
     clear_bss();
 
-    printk("[KERNEL->main] printk test.\n");
+    trap_init();
 
-    int a = 1;
-    printk("[KERNEL->main] %d 0x%x\n", 1, bss_start);
+    load_app();
+
+    run_app();
 
     panic("kernel panic error");
 

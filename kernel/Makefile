@@ -13,9 +13,15 @@ CFLAGS += -mcmodel=medany
 INC_DIR = ./include
 
 SRC_FILES = ./start.s		\
+			./linker_apps.s	\
+			./load_app.c	\
 			./main.c 		\
 			./sbi.c			\
-			./printk.c
+			./printk.c		\
+			./trap.c		\
+			./trap.s		\
+			./string.c		\
+			./syscall.c
 
 SRC_LINKER = ./linker_qemu.ld
 

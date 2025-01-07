@@ -1,5 +1,6 @@
 #include "types.h"
 #include "sbi.h"
+#include "defs.h"
 
 struct sbiret sbi_ecall(int ext, int fid, unsigned long arg0,
                         unsigned long arg1, unsigned long arg2,
