@@ -17,7 +17,7 @@ static uint64   current_app = 0;        // 记录当前执行到第几个APP了
 static uint8    kernel_stack[KERNEL_STACK_SIZE] = {0};      // kernel stack
 static uint8    user_stack[USER_STACK_SIZE] = {0};          // user stack
 // static uint64   current_app = 0;        // 记录当前执行到第几个APP了
-// BUG把current_app变量放在user_stack后面时会导致current_app的值被改变，导致app切换失败
+// BUG把current_app变量放在user_stack后面时会导致current_app的值被改变，使app切换失败
 
 // Get the top kernel stack address
 uint64 get_kernel_stack_top(void) {
@@ -37,8 +37,9 @@ void load_app(void) {
 
     // 刷新缓冲区
     asm volatile("fence.i");
+    int i = current_app;
     
-    for (uint64 i = 0; i < app_nums; i++) {
+    // for (uint64 i = 0; i < app_nums; i++) {
         uint8* app_addr;
 
         // 指向每个APP被加载到的首地址
@@ -55,7 +56,8 @@ void load_app(void) {
 
         printk("[KERNEL->load_app] app%d addr_end = 0x%x\n",
                 i, --app_addr);
-    }
+        i++;
+    // }
 }
 
 void run_app(void) {

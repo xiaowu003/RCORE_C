@@ -4,9 +4,6 @@
 #include "./include/defs.h"
 #include "./include/syscall.h"
 
-/* interrupt */
-#define UserEnvCall 8
-
 extern char uservec[];
 extern void __alltraps(void);
 extern void __restore(TrapContext *cx);
@@ -34,10 +31,14 @@ TrapContext *trap_handler(TrapContext *cx) {
         panic("can't identify interrupt trap");
     } else {
         switch (trap) {
-            case UserEnvCall:
+            case U_MODE_CALL:
                 cx->sepc += 4;
                 cx->regs.a0 = syscall(cx->regs.a7, cx->regs.a0, cx->regs.a1, cx->regs.a2);
                 break;
+            case ILLEGAL_INSTRUCTION:
+                panic("illegal instruction, kernel kill app\n");
+            case STORE_AMO_ACCESS_FAULT:
+                panic("store/amo access fault, kernel kill app\n");
             default:
                 panic("trap scause undefined.");
                 break;

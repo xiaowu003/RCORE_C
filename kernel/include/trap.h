@@ -42,4 +42,16 @@ typedef struct TrapContext {
     uint64 sepc;
 } TrapContext;
 
+/* interrupt */
+#define INSTRUCTION_ACCESS_FAULT        1
+#define ILLEGAL_INSTRUCTION             2
+#define LOAD_ACCESS_FAULT               5
+#define STORE_AMO_ADDRESS_MISALIGNED    6
+#define STORE_AMO_ACCESS_FAULT          7
+#define U_MODE_CALL                     8
+#define S_MODE_CALL                     9
+#define INSTRUCTION_PAGE_FAULT          12
+#define LOAD_PAGE_FAULT                 13
+#define STORE_AMO_PAGE_FAULT            15
+
 #endif  /*kernel/include/trap.h */
