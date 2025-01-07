@@ -9,7 +9,7 @@ int64 sys_write(int8 *buf) {
 }
 
 int64 sys_exit(uint64 exit_id) {
-    printk("[kernel] app exit %d.\n", exit_id);
+    printk("[KERNEL->sys_exit] app exit %d\n", exit_id);
     run_app();
     //sbi_shut_down(1);
     return 0;

@@ -2,7 +2,7 @@
     .section .data
     .global _num_app
 _num_app:
-    .quad 1
+    .quad 2
     .quad app_0_start
     .quad app_0_end
     .quad app_1_start
@@ -19,5 +19,5 @@ app_0_end:
     .global app_1_start
     .global app_1_end
 app_1_start:
-    # .incbin "../target/00t.bin"
+    .incbin "../target/app_01.bin"
 app_1_end:

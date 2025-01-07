@@ -107,7 +107,7 @@ __restore:
     ld t0, 32*8(sp)
     ld t1, 33*8(sp)
     ld t2, 2*8(sp)
-    csrw sscratch, t0
+    csrw sstatus, t0
     csrw sepc, t1
     csrw sscratch, t2
     
