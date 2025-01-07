@@ -23,14 +23,14 @@ int64 Usyscall(int sys_id,  unsigned long arg0,
 }
 
 
-int64 sys_write(int8* ch) {
+int64 write(int8* ch) {
     return Usyscall(1, (uint64)ch, 0, 0, 0, 0, 0, 0);
 }
 
-int64 sys_exit(int64 id) {
+int64 exit(int64 id) {
     return Usyscall(2, id, 0, 0, 0, 0, 0, 0);
 }
 
 void printf(const int8* fmt) {
-    sys_write(fmt);
+    write(fmt);
 }

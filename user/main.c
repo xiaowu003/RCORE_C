@@ -20,6 +20,6 @@ int lib_main(void) {
     clear_bss();
     printf("[user_lib] init ok\n");
     printf("[user lib] second test.\n");
-    main();
+    exit(main());
     return 0;
 }

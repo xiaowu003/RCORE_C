@@ -1,10 +1,8 @@
 #ifndef __USER_H__
 #define __USER_H__
 
-int write(char*);
-int exit(int);
-
-
-void printf(const char *);
+// syscall.c
+void        printf(const char *);
+int64       exit(int64);
 
 #endif /* user.h */
