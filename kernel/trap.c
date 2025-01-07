@@ -20,12 +20,12 @@ void trap_init(void) {
 }
 
 TrapContext *trap_handler(TrapContext *cx) {
-    printk("[kernel] trap handler\n");
+    printk("[KERNEL->trap_handler] trap handler\n");
     uint64 scause = r_scause();
     uint64 stval = r_stval();
 
-    printk("[Trap] scause = 0x%x\n", scause);
-    printk("[Trap] stval = 0x%x\n", stval);
+    printk("[KERNEL->trap_handler] scause = 0x%x\n", scause);
+    printk("[KERNEL->trap_handler] stval = 0x%x\n", stval);
     
     // 根据原因处理trap
     uint64 trap = scause & 0x0fff;
