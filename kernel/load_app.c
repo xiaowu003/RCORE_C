@@ -37,9 +37,8 @@ void load_app(void) {
 
     // 刷新缓冲区
     asm volatile("fence.i");
-    int i = current_app;
     
-    // for (uint64 i = 0; i < app_nums; i++) {
+    for (uint64 i = 0; i < app_nums; i++) {
         uint8* app_addr;
 
         // 指向每个APP被加载到的首地址
@@ -57,7 +56,7 @@ void load_app(void) {
         printk("[KERNEL->load_app] app%d addr_end = 0x%x\n",
                 i, --app_addr);
         i++;
-    // }
+    }
 }
 
 void run_app(void) {
