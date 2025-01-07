@@ -43,7 +43,7 @@ void load_app(void) {
         uint8* app_addr;
 
         // 指向每个APP被加载到的首地址
-        app_addr = (uint8*)(APP_BASE_ADDRESS + APP_MAX_SIZE * i);
+        app_addr = (uint8*)APP_BASE_ADDRESS;
 
         printk("[KERNEL->load_app] app%d 0x%x - 0x%x\n", 
                 i, num_app_ptr[i * 2], num_app_ptr[i * 2 + 1]);
@@ -56,7 +56,6 @@ void load_app(void) {
 
         printk("[KERNEL->load_app] app%d addr_end = 0x%x\n",
                 i, --app_addr);
-        i++;
     // }
 }
 
@@ -75,8 +74,8 @@ void run_app(void) {
         0,
         0
     };
-    // 确保sret后跳转到相应的app
-    tc.sepc = APP_BASE_ADDRESS + APP_MAX_SIZE * current_app;
+    // 确保sret后跳转到相应的app首地址
+    tc.sepc = APP_BASE_ADDRESS;
     current_app++;
 
     tc.sstatus = sstatus & (~SSTATUS_SPP);  // 将上一个状态置为S模式
