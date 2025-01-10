@@ -1,4 +1,4 @@
-CROSS_PREFIX = /riscv64-gcc-8.3.0/riscv/bin/riscv64-unknown-elf-
+CROSS_PREFIX = riscv64-unknown-elf-
 CC = ${CROSS_PREFIX}gcc
 AS = ${CROSS_PREFIX}as
 GDB = ${CROSS_PREFIX}gdb
