@@ -1,4 +1,4 @@
-CROSS_PREFIX = /riscv64-gcc-8.3.0/riscv/bin/riscv64-unknown-elf-
+CROSS_PREFIX = riscv64-unknown-elf-
 CC = ${CROSS_PREFIX}gcc
 AS = ${CROSS_PREFIX}as
 GDB = ${CROSS_PREFIX}gdb
@@ -28,6 +28,7 @@ SRC_LINKER = ./linker_qemu.ld
 TARGET_NAME = ../target/os
 TARGET_ELF = ${TARGET_NAME}.elf
 TARGET_BIN = ${TARGET_NAME}.bin
+TARGET_ASM = ${TARGET_NAME}.asm
 
 SBI_BIN = ./rustsbi-qemu.bin
 
@@ -61,7 +62,10 @@ gdb :
 
 debug:
 
+dasm:
+	${OBJDUMP} -d ${TARGET_ELF} > ${TARGET_ASM}
+
 clean:
 	rm -rf ../target/os.*
 
-.PHONY : creat_folder folder build objcopy run rung gdb debug clean
+.PHONY : creat_folder folder build objcopy run rung gdb debug clean dasm
