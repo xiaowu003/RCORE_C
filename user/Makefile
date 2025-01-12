@@ -8,7 +8,7 @@ OBJCOPY = ${CROSS_PREFIX}objcopy
 OBJDUMP = ${CROSS_PREFIX}objdump
 
 INC_DIR = ./include/
-APP_NUM = 01
+APP_NUM = 00
 SRC_LINKER = ./linker/${APP_NUM}t_linker.ld
 
 TARGET_NAME = ../target/app_${APP_NUM}

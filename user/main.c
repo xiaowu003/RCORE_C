@@ -19,7 +19,7 @@ void clear_bss(void) {
 int lib_main(void) {
     clear_bss();
     printf("[user_lib] init ok\n");
-    printf("[user lib] second test.\n");
+    printf("[user_lib] second test.\n");
     exit(main());
     return 0;
 }

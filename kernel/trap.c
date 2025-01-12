@@ -9,7 +9,7 @@ extern void __alltraps(void);
 extern void __restore(TrapContext *cx);
 
 void trap_init(void) {
-    printk("[Test] trap.__alltraps = 0x%x\n", (uint64)__alltraps);
+    printk("[KERNEL->trap_init] trap.__alltraps = 0x%x\n", (uint64)__alltraps);
 
     // 重定向trap函数
     w_stvec((uint64)__alltraps);

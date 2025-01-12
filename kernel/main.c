@@ -5,7 +5,7 @@ extern void bss_start(void);
 extern void bss_end(void);
 
 void clear_bss() {
-    printk("[KERNEL->clear_bss] bss_start = 0x%x, bss_end = 0x%x",
+    printk("[KERNEL->clear_bss] bss_start = 0x%x, bss_end = 0x%x\n",
             bss_start,bss_end);
     printk("[KERNEL->clear_bss] clear bss\n");
     

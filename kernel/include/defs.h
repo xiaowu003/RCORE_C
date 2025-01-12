@@ -42,5 +42,6 @@ void                    run_app(void);
 int64                   syscall(uint64, uint64, uint64, uint64);
 int64                   sys_write(int8 *);
 int64                   sys_exit(uint64);
+int64                   sys_stack_trace();
 
 #endif  /* defs.h */

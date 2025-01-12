@@ -15,6 +15,7 @@ void println(const int8 *fmt) {
 
 void panic(const int8 *fmt) {
     sbi_console_putchar('\n');
+    sys_stack_trace();
     print("[Panic] : ");
     println(fmt);
     sbi_shut_down(1);   // 让其报错
