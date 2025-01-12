@@ -28,6 +28,7 @@ SRC_LINKER = ./linker_qemu.ld
 TARGET_NAME = ../target/os
 TARGET_ELF = ${TARGET_NAME}.elf
 TARGET_BIN = ${TARGET_NAME}.bin
+TARGET_ASM = ${TARGET_NAME}.asm
 
 SBI_BIN = ./rustsbi-qemu.bin
 
@@ -50,7 +51,10 @@ build : folder
 objcopy : build
 	@${OBJCOPY} --strip-all ${TARGET_ELF} -O binary ${TARGET_BIN}
 
-run : objcopy
+dasm:
+	${OBJDUMP} -d ${TARGET_ELF} > ${TARGET_ASM}
+
+run : objcopy dasm
 	qemu-system-riscv64 -machine virt -nographic -bios $(SBI_BIN) -device loader,file=${TARGET_BIN},addr=${BASE_ADDRESS}
 
 rung: objcopy
@@ -64,4 +68,4 @@ debug:
 clean:
 	rm -rf ../target/os.*
 
-.PHONY : creat_folder folder build objcopy run rung gdb debug clean
+.PHONY : creat_folder folder build objcopy run rung gdb debug clean dasm

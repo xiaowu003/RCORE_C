@@ -6,33 +6,36 @@
 extern void _num_app(void);
 extern void app_0_start(void);
 extern void app_0_end(void);
-extern void boot_stack_top(void);
+extern char boot_stack_top[];
 
 #define APP_BASE_ADDRESS    0x80400000
 #define APP_MAX_SIZE        0x20000
-#define KERNEL_STACK_SIZE   4096
 #define USER_STACK_SIZE     4096
 
 static uint64   current_app = 0;        // 记录当前执行到第几个APP了
-static uint8    kernel_stack[KERNEL_STACK_SIZE] = {0};      // kernel stack
 static uint8    user_stack[USER_STACK_SIZE] = {0};          // user stack
 // static uint64   current_app = 0;        // 记录当前执行到第几个APP了
 // BUG把current_app变量放在user_stack后面时会导致current_app的值被改变，使app切换失败
 
 // Get the top kernel stack address
 uint64 get_kernel_stack_top(void) {
-    return (uint64)(kernel_stack + KERNEL_STACK_SIZE - 1);
+    return (uint64)boot_stack_top;
 }
 
 // Get the top user stack address
 uint64 get_user_stack_top(void) {
-    return (uint64)(user_stack + USER_STACK_SIZE - 1);
+    return (uint64)(user_stack + USER_STACK_SIZE);
 }
 
 
 void load_app(void) {
     uint64* num_app_ptr = (uint64*) _num_app;
     uint64 app_nums = *num_app_ptr;  // 解引用得到app数量
+
+    if (current_app >= *(uint64*)_num_app) {
+        panic("run_app : all app execed\n");
+    }
+    
     num_app_ptr++;  // 指向app_0_start
 
     // 刷新缓冲区
