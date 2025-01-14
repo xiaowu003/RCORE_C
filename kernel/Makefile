@@ -14,14 +14,16 @@ INC_DIR = ./include
 
 SRC_FILES = ./start.s		\
 			./linker_apps.s	\
-			./load_app.c	\
+			./load.c	\
 			./main.c 		\
 			./sbi.c			\
 			./printk.c		\
 			./trap.c		\
 			./trap.s		\
 			./string.c		\
-			./syscall.c
+			./syscall.c		\
+			./switch.S		\
+			./proc.c
 
 SRC_LINKER = ./linker_qemu.ld
 
@@ -51,19 +53,19 @@ build : folder
 objcopy : build
 	@${OBJCOPY} --strip-all ${TARGET_ELF} -O binary ${TARGET_BIN}
 
-run : objcopy
+dasm:
+	${OBJDUMP} -d ${TARGET_ELF} > ${TARGET_ASM}
+
+run : objcopy dasm
 	qemu-system-riscv64 -machine virt -nographic -bios $(SBI_BIN) -device loader,file=${TARGET_BIN},addr=${BASE_ADDRESS}
 
-rung: objcopy
+rung: objcopy dasm
 	qemu-system-riscv64 -machine virt -nographic -bios $(SBI_BIN) -device loader,file=${TARGET_BIN},addr=${BASE_ADDRESS} -s -S
 
 gdb : 
 	${GDB} -ex 'file ${TARGET_ELF}' -ex 'set arch riscv:rv64' -ex 'target remote localhost:1234'
 
 debug:
-
-dasm:
-	${OBJDUMP} -d ${TARGET_ELF} > ${TARGET_ASM}
 
 clean:
 	rm -rf ../target/os.*

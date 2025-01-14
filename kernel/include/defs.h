@@ -1,6 +1,7 @@
 #ifndef __DEFS_H__
 #define __DEFS_H__
 
+struct Context;
 struct TrapContext;
 struct sbiret;
 
@@ -12,7 +13,7 @@ struct TrapContext*     trap_handler(struct TrapContext *);
 uint32                  strlen(const int8 *);
 void*                   memcpy(void *, const void *, uint64);
 int32                   memcmp(const void *, const void *, uint64);
-void                    memmove(uint8 *dest, const uint8 *, uint32);
+void                    memmove(uint8 *dest, const uint8 *, uint64);
 void*                   memset(void *dest, uint8 val, uint32);
 int32                   strcmp(const int8 *str1, const int8 *);
 int32                   ifsubstr(char *, char *, int);
@@ -33,15 +34,24 @@ void                    sbi_shut_down(uint32 exit_code);
 
 
 // load_app.c
-uint64                  get_kernel_stack_top(void);
-uint64                  get_user_stack_top(void);
-void                    load_app(void);
-void                    run_app(void);
+uint64                  get_kernel_stack(uint64);
+uint64                  get_user_stack(uint64);
+void                    load_init(void);
+uint64                  load_app(uint64, uint64*);
+uint64                  run_all_app(void);
 
 // syscall.c
 int64                   syscall(uint64, uint64, uint64, uint64);
 int64                   sys_write(int8 *);
 int64                   sys_exit(uint64);
 int64                   sys_stack_trace();
+
+// proc.c
+void                    proc_init(void);
+struct Proc*            allocate_proc(void);
+void                    scheduler(void);
+void                    yield(void);
+void                    sched(void);
+struct Proc*            cur_proc(void);
 
 #endif  /* defs.h */

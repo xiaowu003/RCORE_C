@@ -1,6 +1,6 @@
-#include "./include/types.h"
-#include "./include/defs.h"
-#include "./include/syscall.h"
+#include "types.h"
+#include "defs.h"
+#include "syscall.h"
 
 
 int64 sys_write(int8 *buf) {
@@ -10,7 +10,7 @@ int64 sys_write(int8 *buf) {
 
 int64 sys_exit(uint64 exit_id) {
     printk("[KERNEL->sys_exit] app exit %d\n", exit_id);
-    run_app();
+    yield();
     //sbi_shut_down(1);
     return 0;
 }
@@ -35,6 +35,11 @@ int64 sys_stack_trace() {
     return 0;
 }
 
+int64 sys_yield() {
+    yield();
+    return 0;
+}
+
 int64 syscall(uint64 id, uint64 arg0, uint64 arg1, uint64 arg2) {
     uint64 ret;
     switch (id) {
@@ -47,6 +52,8 @@ int64 syscall(uint64 id, uint64 arg0, uint64 arg1, uint64 arg2) {
         case SYS_STACK_TRACE:
             ret = sys_stack_trace();
             break;
+        case SYS_YIELD:
+            ret = sys_yield();
         default:
             printk("[syscall] error id = %x\n", id);
             panic("kernel: syscall id undefined.");

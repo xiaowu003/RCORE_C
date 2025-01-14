@@ -101,7 +101,7 @@ __alltraps:
 __restore:
     # a0: *TrapConstext in user space(Constant); a1: user space token
     # sp get the TrapConstext from a0
-    mv sp, a0
+    # mv sp, a0
     
     # now sp points to TrapConstext in user space, start restoring based on it
     ld t0, 32*8(sp)

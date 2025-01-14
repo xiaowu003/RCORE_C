@@ -1,5 +1,5 @@
 #include "./include/Utypes.h"
-
+#include "../kernel/include/syscall.h"
 int64 Usyscall(int sys_id,  unsigned long arg0,
               unsigned long arg1, unsigned long arg2,
               unsigned long arg3, unsigned long arg4,
@@ -24,11 +24,15 @@ int64 Usyscall(int sys_id,  unsigned long arg0,
 
 
 int64 write(int8* ch) {
-    return Usyscall(1, (uint64)ch, 0, 0, 0, 0, 0, 0);
+    return Usyscall(SYS_WRITE, (uint64)ch, 0, 0, 0, 0, 0, 0);
 }
 
 int64 exit(int64 id) {
-    return Usyscall(2, id, 0, 0, 0, 0, 0, 0);
+    return Usyscall(SYS_EXIT, id, 0, 0, 0, 0, 0, 0);
+}
+
+int64 yield(void) {
+    return Usyscall(SYS_YIELD, 0, 0, 0, 0, 0, 0, 0);
 }
 
 void printf(const int8* fmt) {

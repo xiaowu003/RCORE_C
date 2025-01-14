@@ -4,5 +4,6 @@
 // syscall.c
 void        printf(const char *);
 int64       exit(int64);
+int64       yield(void);
 
 #endif /* user.h */

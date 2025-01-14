@@ -4,5 +4,6 @@
 #define SYS_WRITE           1
 #define SYS_EXIT            2
 #define SYS_STACK_TRACE     3
+#define SYS_YIELD           4
 
 #endif

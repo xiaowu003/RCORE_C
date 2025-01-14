@@ -23,9 +23,13 @@ int main(void) {
 
     trap_init();
 
-    load_app();
+    proc_init();
 
-    run_app();
+    load_init();
+
+    run_all_app();
+
+    scheduler();
 
     panic("kernel panic error");
 
