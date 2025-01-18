@@ -2,6 +2,16 @@
     "files.associations": {
         "*.tcc": "c",
         "defs.h": "c",
-        "riscv.h": "c"
+        "riscv.h": "c",
+        "proc.h": "c",
+        "load.h": "c",
+        "types.h": "c",
+        "sbi.h": "c",
+        "timer.h": "c",
+        "syscall.h": "c",
+        "time.h": "c",
+        "user.h": "c",
+        "utypes.h": "c",
+        "trap.h": "c"
     }
 }

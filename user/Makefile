@@ -8,7 +8,7 @@ OBJCOPY = ${CROSS_PREFIX}objcopy
 OBJDUMP = ${CROSS_PREFIX}objdump
 
 INC_DIR = ./include/
-APP_NUM = 00
+APP_NUM = 02
 SRC_LINKER = ./linker/${APP_NUM}t_linker.ld
 
 TARGET_NAME = ../target/app_${APP_NUM}
@@ -28,7 +28,7 @@ build :
 	@${OBJCOPY} --strip-all ${TARGET_ELF} -O binary ${TARGET_BIN}
 
 clean :
-	rm ../target/app_00.*
+	rm ../target/*
 
 .PHONY : build clean run rung
 	

@@ -1,5 +1,7 @@
 #include "./include/Utypes.h"
 #include "../kernel/include/syscall.h"
+#include "../kernel/include/timer.h"
+
 int64 Usyscall(int sys_id,  unsigned long arg0,
               unsigned long arg1, unsigned long arg2,
               unsigned long arg3, unsigned long arg4,
@@ -33,6 +35,12 @@ int64 exit(int64 id) {
 
 int64 yield(void) {
     return Usyscall(SYS_YIELD, 0, 0, 0, 0, 0, 0, 0);
+}
+
+uint64 get_time(void) {
+    struct TimeVal time_val;
+    Usyscall(SYS_GET_TIME, (uint64)&time_val, 0, 0, 0, 0, 0, 0);
+    return time_val.sec * 1000 + time_val.usec / 1000;
 }
 
 void printf(const int8* fmt) {
