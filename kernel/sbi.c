@@ -2,11 +2,11 @@
 #include "sbi.h"
 #include "defs.h"
 
-struct sbiret sbi_ecall(int ext, int fid, unsigned long arg0,
+struct SbiRet sbi_ecall(uint64 eid, uint64 fid, unsigned long arg0,
                         unsigned long arg1, unsigned long arg2,
                         unsigned long arg3, unsigned long arg4,
                         unsigned long arg5) {
-    struct sbiret ret;
+    struct SbiRet ret;
 
     register unsigned long a0 asm("a0") = (unsigned long)(arg0);
     register unsigned long a1 asm("a1") = (unsigned long)(arg1);
@@ -15,7 +15,7 @@ struct sbiret sbi_ecall(int ext, int fid, unsigned long arg0,
     register unsigned long a4 asm("a4") = (unsigned long)(arg4);
     register unsigned long a5 asm("a5") = (unsigned long)(arg5);
     register unsigned long a6 asm("a6") = (unsigned long)(fid);
-    register unsigned long a7 asm("a7") = (unsigned long)(ext);
+    register unsigned long a7 asm("a7") = (unsigned long)(eid);
 
     asm volatile ("ecall"
                    : "+r" (a0), "+r" (a1)
@@ -28,15 +28,19 @@ struct sbiret sbi_ecall(int ext, int fid, unsigned long arg0,
     return ret;
 }
 
+void sbi_set_timer(uint64 time) {
+    sbi_ecall(SBI_SET_TIMER, 0, (uint64)time, 0, 0, 0, 0, 0);
+}
+
 void sbi_console_putchar(int8 ch) {
     sbi_ecall(SBI_CONSOLE_PUTCHAR, 0, ch, 0, 0, 0, 0, 0);
 }
 
-void sbi_shut_down(uint32 exit_code) {
+void sbi_shut_down(uint64 exit_code) {
     // sbi_ecall(SBI_SHUTDOWN, 0, exit_code, 0, 0, 0, 0, 0);
     // 实测之后发现 SBI_SHUTDOWN 不能正产运行，查找rustsbi手册
     // 发现了还有一个命令 SBI_RESET
-    // struct sbiret sbi_system_reset(uin32_t reset_type, uint32_t reset_reason);
+    // struct SbiRet sbi_system_reset(uin32_t reset_type, uint32_t reset_reason);
     // where :
     // RESET TYPES:    0x0 -> shutdown
     //                 0x1 -> cold reboot
@@ -51,4 +55,10 @@ void sbi_shut_down(uint32 exit_code) {
     // 当exit_code = 0时，qemu正常退出无报错
     // 当exit_code = 1时，qemu退出，但是报错：make: *** [Makefile:51: run] Error 255
     // 暂不清楚原因
+}
+
+void sbi_get_sbi_spec_version(void) {
+    struct SbiRet spce_version;
+    spce_version = sbi_ecall(SBI_SPEC_VERSION, 0, 0, 0, 0, 0, 0, 0);
+    printk("sbi version = 0x%d\n", spce_version.value);
 }

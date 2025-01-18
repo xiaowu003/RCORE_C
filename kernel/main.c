@@ -27,7 +27,15 @@ int main(void) {
 
     load_init();
 
+    sbi_get_sbi_spec_version();
+
+    timer_init();
+
+    // interrupt_query();
+
     run_all_app();
+
+    // interrupt_query();
 
     scheduler();
 

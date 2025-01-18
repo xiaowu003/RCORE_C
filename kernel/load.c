@@ -46,13 +46,14 @@ uint64 load_app(uint64 n, uint64* app_info) {
 }
 
 uint64 run_all_app(void) {
-    for (uint64 i = 0; i < *(uint64*)_num_app; i++) {
+    for (uint64 i = 0; i < app_num; i++) {
         struct Proc *p = allocate_proc();
         if (load_app(i, app_info_ptr) < 0) panic("load app error\n");
 
         p->trap_context.regs.sp = p->ustack + USER_STACK_SIZE;
         p->trap_context.sepc = (uint64)(APP_BASE_ADDRESS + i * APP_MAX_SIZE);
-        p->trap_context.sstatus = (uint64)(r_sstatus() & (~SSTATUS_SPP));     // 将该进程的上一个状态设置为S-mode
+        p->trap_context.sstatus = (uint64)(r_sstatus() & (~SSTATUS_SPP) | (SSTATUS_SPIE));     // 将该进程的上一个状态设置为U-mode
+
         
         // 将TrapContext压入进程对应的内核栈
         memcpy((void*)(p->kstack + PGSIZE - sizeof(TrapContext)),

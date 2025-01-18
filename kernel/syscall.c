@@ -1,7 +1,8 @@
 #include "types.h"
 #include "defs.h"
+#include "proc.h"
 #include "syscall.h"
-
+#include "timer.h"
 
 int64 sys_write(int8 *buf) {
     printk("%s",buf);
@@ -10,6 +11,8 @@ int64 sys_write(int8 *buf) {
 
 int64 sys_exit(uint64 exit_id) {
     printk("[KERNEL->sys_exit] app exit %d\n", exit_id);
+    struct Proc *p = get_cur_proc();
+    p->state = EXITED;
     yield();
     //sbi_shut_down(1);
     return 0;
@@ -40,6 +43,13 @@ int64 sys_yield() {
     return 0;
 }
 
+uint64 sys_get_tiem(struct TimeVal *val) {
+    uint64 cycle = get_cycle();
+    val->sec = cycle / CPU_FREQUENCY;
+    val->usec = (cycle % CPU_FREQUENCY) * 1000000 / CPU_FREQUENCY;
+    return 0;
+}
+
 int64 syscall(uint64 id, uint64 arg0, uint64 arg1, uint64 arg2) {
     uint64 ret;
     switch (id) {
@@ -54,6 +64,10 @@ int64 syscall(uint64 id, uint64 arg0, uint64 arg1, uint64 arg2) {
             break;
         case SYS_YIELD:
             ret = sys_yield();
+            break;
+        case SYS_GET_TIME:
+            ret = sys_get_tiem((struct TimeVal*)arg0);
+            break;
         default:
             printk("[syscall] error id = %x\n", id);
             panic("kernel: syscall id undefined.");

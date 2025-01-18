@@ -45,7 +45,7 @@ struct Proc *allocate_proc(void) {
     return 0;
 }
 
-struct Proc *cur_proc(void) {
+struct Proc *get_cur_proc(void) {
     return current_proc;
 }
 
@@ -66,11 +66,13 @@ void scheduler(void) {
 }
 
 void sched(void) {
-    struct Proc *p = cur_proc();
+    struct Proc *p = get_cur_proc();
     __switch(&p->context, &os_proc.context);
 }
 
 void yield(void) {
-    current_proc->state = READY;
+    if (current_proc->state == RUNNING) {
+        current_proc->state = READY;
+    }
     sched();
 }

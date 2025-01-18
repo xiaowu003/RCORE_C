@@ -3,10 +3,12 @@
 
 struct Context;
 struct TrapContext;
-struct sbiret;
+struct SbiRet;
+struct TimeVal;
 
 /* trap.c */
-void trap_init(void);
+void                    unknown_trap(char*);
+void                    trap_init(void);
 struct TrapContext*     trap_handler(struct TrapContext *);
 
 // string.c
@@ -30,8 +32,9 @@ int                     printk(const char *fmt, ...);
 void                    sbi_console_putchar(int8 ch);
 
 // 推荐exit_code=0,=1时可以关闭，但是有报错 
-void                    sbi_shut_down(uint32 exit_code);
-
+void                    sbi_shut_down(uint64 exit_code);
+void                    sbi_set_timer(uint64);
+void                    sbi_get_sbi_spec_version(void);
 
 // load_app.c
 uint64                  get_kernel_stack(uint64);
@@ -52,6 +55,15 @@ struct Proc*            allocate_proc(void);
 void                    scheduler(void);
 void                    yield(void);
 void                    sched(void);
-struct Proc*            cur_proc(void);
+struct Proc*            get_cur_proc(void);
+
+// timer.c
+uint64                  get_cycle(void);
+void                    set_timer(uint64);
+void                    set_next_10ms_timer(void);
+uint64                  get_time_us(void);
+void                    enable_timer_interrupt(void);
+void                    timer_init(void);
+void                    interrupt_query(void);
 
 #endif  /* defs.h */

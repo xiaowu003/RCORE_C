@@ -23,7 +23,8 @@ SRC_FILES = ./start.s		\
 			./string.c		\
 			./syscall.c		\
 			./switch.S		\
-			./proc.c
+			./proc.c		\
+			./timer.c
 
 SRC_LINKER = ./linker_qemu.ld
 

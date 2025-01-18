@@ -8,6 +8,11 @@ extern char uservec[];
 extern void __alltraps(void);
 extern void __restore(TrapContext *cx);
 
+void unknown_trap(char *trap_type) {
+    printk("\n[Panic] unknown %s trap: 0x%x, stval = 0x%x\n", trap_type, r_scause(), r_stval());
+    sbi_shut_down(1);
+}
+
 void trap_init(void) {
     printk("[KERNEL->trap_init] trap.__alltraps = 0x%x\n", (uint64)__alltraps);
 
@@ -26,9 +31,19 @@ TrapContext *trap_handler(TrapContext *cx) {
     
     // 根据原因处理trap
     uint64 trap = scause & 0x0fff;
-    if (scause & 0x8000 == 1) {
+    if (scause & (1ULL << 63)) {
         // interrupt
-        panic("can't identify interrupt trap");
+        scause &= ~(1ULL << 63);
+        switch (scause) {
+            case SupervisorTimer:
+                printk("[KERNEL->trap_handler] timer interrupt\n");
+                set_next_10ms_timer();
+                yield();
+                break;
+            default:
+                unknown_trap("Interrupt");
+                break;
+        }
     } else {
         switch (trap) {
             case U_MODE_CALL:
@@ -37,10 +52,14 @@ TrapContext *trap_handler(TrapContext *cx) {
                 break;
             case ILLEGAL_INSTRUCTION:
                 panic("illegal instruction, kernel kill app\n");
+                break;
             case STORE_AMO_ACCESS_FAULT:
                 panic("store/amo access fault, kernel kill app\n");
+                break;
+            case LOAD_ACCESS_FAULT:
+                panic("load access fault, kernel kill app\n");
             default:
-                panic("trap scause undefined.");
+                unknown_trap("Exception");
                 break;
         }
     }

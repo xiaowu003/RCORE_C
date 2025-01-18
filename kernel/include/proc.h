@@ -3,7 +3,7 @@
 
 #include "trap.h"
 
-#define NPROC   2
+#define NPROC  3 
 
 enum ProcStatus {
     UNUSED,     // 未初始化

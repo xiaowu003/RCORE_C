@@ -42,7 +42,17 @@ typedef struct TrapContext {
     uint64 sepc;
 } TrapContext;
 
-/* interrupt */
+// interrupt
+enum Interrupt {
+    UserSoft = 0,
+    SupervisorSoft,
+    UserTimer = 4,
+    SupervisorTimer,
+    UserExternal = 8,
+    SupervisorExternal,
+};
+
+// Exception
 #define INSTRUCTION_ACCESS_FAULT        1
 #define ILLEGAL_INSTRUCTION             2
 #define LOAD_ACCESS_FAULT               5
