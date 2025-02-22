@@ -8,8 +8,9 @@ OBJCOPY = ${CROSS_PREFIX}objcopy
 OBJDUMP = ${CROSS_PREFIX}objdump
 
 INC_DIR = ./include/
-APP_NUM = 02
-SRC_LINKER = ./linker/${APP_NUM}t_linker.ld
+APP_NUM = 01
+SRC_LINKER = ./linker/linker.ld
+# SRC_LINKER = ./linker/${APP_NUM}t_linker.ld
 
 TARGET_NAME = ../target/app_${APP_NUM}
 TARGET_ELF = ${TARGET_NAME}.elf
@@ -21,10 +22,10 @@ SRC_FILES = ./Uentry.s			\
 			./syscall.c
 
 build :
-	${CC} -g ${SRC_FILES} -o ${TARGET_ELF}	\
+	${CC} -nostdinc -nostdlib -g ${SRC_FILES} -o ${TARGET_ELF}	\
 		-T${SRC_LINKER}	\
 		-I${INC_DIR}	\
-		-nostdinc -nostdlib ${CFLAGS} 
+		${CFLAGS} 
 	@${OBJCOPY} --strip-all ${TARGET_ELF} -O binary ${TARGET_BIN}
 
 clean :

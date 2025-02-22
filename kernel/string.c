@@ -19,14 +19,19 @@ void* memcpy(void *dest, const void *src, uint64 len) {
 
 
 int32 memcmp(const void *src1, const void *src2, uint64 len) {
-    uint8 *d, *s;
-    int32 res;
-    for (d = src1, s = src2; len > 0; d++, s++, len--) {
-        if ((res = *d - *s) != 0) {
-            break;
+    uint8 *s1, *s2;
+    
+    s1 = src1;
+    s2 = src2;
+
+    while (len-- > 0) {
+        if (s1 != s2) {
+            return *s1 - *s2;
         }
+        s1++, s2++;
     }
-    return res;
+
+    return 0;
 }
 
 void memmove(uint8 *dest, const uint8 *src, uint64 len) {

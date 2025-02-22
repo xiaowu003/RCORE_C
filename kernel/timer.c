@@ -37,6 +37,7 @@ void timer_init(void) {
     
     // 设置第一个10ms的计时器
     set_next_10ms_timer();
+    printk("[K->timer_init] ok\n");
 }
 
 void interrupt_query(void) {

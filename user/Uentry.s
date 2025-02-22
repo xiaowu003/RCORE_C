@@ -1,8 +1,11 @@
+    .align 3
     .section .text.entry
     .global _entry
 _entry:
-    la sp, boot_stack_top
+    #la sp, boot_stack_top
     j lib_main
+    
+    
 
 # bss段内存
     .section .bss.stack

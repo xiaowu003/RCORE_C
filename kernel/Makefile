@@ -24,7 +24,9 @@ SRC_FILES = ./start.s		\
 			./syscall.c		\
 			./switch.S		\
 			./proc.c		\
-			./timer.c
+			./timer.c		\
+			./kalloc.c		\
+			./virtual_memory.c
 
 SRC_LINKER = ./linker_qemu.ld
 

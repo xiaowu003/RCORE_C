@@ -36,11 +36,14 @@ struct AllRegister {
     uint64 t6;    // 31 Temporary
 };
 
-typedef struct TrapContext {
+struct trapframe {
     struct AllRegister regs;
     uint64 sstatus;
-    uint64 sepc;
-} TrapContext;
+    uint64 sepc;            // user program counter
+    uint64 kernel_satp;     // kernel page table
+    uint64 kernel_sp;       // top of process's kernel stack
+    uint64 trap_handler;    // usertrap();
+};
 
 // interrupt
 enum Interrupt {

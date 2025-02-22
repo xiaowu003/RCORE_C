@@ -6,4 +6,6 @@
 #define KERNEL_STACK_SIZE   4096
 #define USER_STACK_SIZE     4096
 
+#define APP_BASE_ADDRESS_VA 0x80200000
+
 #endif

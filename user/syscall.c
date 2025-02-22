@@ -25,8 +25,8 @@ int64 Usyscall(int sys_id,  unsigned long arg0,
 }
 
 
-int64 write(int8* ch) {
-    return Usyscall(SYS_WRITE, (uint64)ch, 0, 0, 0, 0, 0, 0);
+int64 write(uint8 * ch, uint64 len) {
+    return Usyscall(SYS_WRITE, (uint64)ch, len, 0, 0, 0, 0, 0);
 }
 
 int64 exit(int64 id) {
@@ -43,6 +43,12 @@ uint64 get_time(void) {
     return time_val.sec * 1000 + time_val.usec / 1000;
 }
 
-void printf(const int8* fmt) {
-    write(fmt);
+void printf(int8* fmt) {
+    uint64 len = 0;
+    int8* str = fmt;
+    while (*str != '\0') {
+        len++;
+        str++;
+    }
+    write(fmt, len);
 }

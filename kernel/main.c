@@ -10,7 +10,7 @@ void clear_bss() {
     printk("[KERNEL->clear_bss] clear bss\n");
     
     volatile uint8* start = (volatile uint8*)&bss_start;
-    volatile uint8* end = (volatile uint8*)&bss_start;
+    volatile uint8* end = (volatile uint8*)&bss_end;
 
     while (start < end) {
         *start = 0;
@@ -21,21 +21,19 @@ void clear_bss() {
 int main(void) {
     clear_bss();
 
-    trap_init();
-
     proc_init();
+    
+    kernel_init();
+
+    kvm_init();
 
     load_init();
 
-    sbi_get_sbi_spec_version();
+    trap_init();
 
     timer_init();
 
-    // interrupt_query();
-
     run_all_app();
-
-    // interrupt_query();
 
     scheduler();
 

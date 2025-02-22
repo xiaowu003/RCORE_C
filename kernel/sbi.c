@@ -60,5 +60,5 @@ void sbi_shut_down(uint64 exit_code) {
 void sbi_get_sbi_spec_version(void) {
     struct SbiRet spce_version;
     spce_version = sbi_ecall(SBI_SPEC_VERSION, 0, 0, 0, 0, 0, 0, 0);
-    printk("sbi version = 0x%d\n", spce_version.value);
+    printk("sbi version = 0x%x\n", spce_version.value);
 }

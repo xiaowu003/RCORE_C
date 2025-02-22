@@ -3,10 +3,19 @@
 #include "proc.h"
 #include "syscall.h"
 #include "timer.h"
+#include "riscv.h"
 
-int64 sys_write(int8 *buf) {
-    printk("%s",buf);
-    return 0;
+int64 sys_write(uint64 va, uint32 len) {
+    struct Proc *p = get_cur_proc();
+    char str[MAX_STR_LEN];
+
+    int size = copyinstr(p->pagetable, str, va, MIN(len, MAX_STR_LEN));
+    for (int i = 0; i < size; i++) {
+        sbi_console_putchar(str[i]);
+    }
+
+    // printk("%s",buf);
+    return size;
 }
 
 int64 sys_exit(uint64 exit_id) {
@@ -54,7 +63,7 @@ int64 syscall(uint64 id, uint64 arg0, uint64 arg1, uint64 arg2) {
     uint64 ret;
     switch (id) {
         case SYS_WRITE:
-            ret = sys_write((int8*)arg0);
+            ret = sys_write(arg0, arg1);
             break;
         case SYS_EXIT:
             ret = sys_exit(arg0);

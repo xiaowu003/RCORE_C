@@ -33,10 +33,12 @@ struct Context {
 };
 
 struct Proc {
+    enum ProcStatus         state;                  // 进程状态
+    pagetable_t             pagetable;              // 应用程序页表
     uint64                  kstack;                 // proc的内核栈底
     uint64                  ustack;                 // proc的用户栈底
-    enum ProcStatus         state;                  // 进程状态
-    TrapContext             trap_context;           // 发生异常时，特权级切换，保存上下文
+    // TrapContext             trap_context;           // 发生异常时，特权级切换，保存上下文
+    struct trapframe*       trapframe;           // 发生异常时，特权级切换，保存上下文
     struct Context          context;                // 用于保存进程内核态的寄存器信息，进程切换时使用
 };
 

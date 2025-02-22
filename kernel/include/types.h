@@ -17,4 +17,8 @@ typedef signed long     int64;
 
 #define NULL            0
 
+typedef uint64          pte_t;
+typedef uint64          pde_t;
+typedef uint64*         pagetable_t;    // 512 PTEs
+
 #endif /* Ktypes.h */

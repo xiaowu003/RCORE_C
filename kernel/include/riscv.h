@@ -200,7 +200,7 @@ w_pmpaddr0(uint64 x)
 
 // use riscv's sv39 page table scheme.
 #define SATP_SV39 (8L << 60)
-
+ 
 #define MAKE_SATP(pagetable) (SATP_SV39 | (((uint64)pagetable) >> 12))
 
 // supervisor address translation and protection;
@@ -339,6 +339,7 @@ typedef uint64 *pagetable_t; // 512 PTEs
 
 #define PGROUNDUP(sz)  (((sz)+PGSIZE-1) & ~(PGSIZE-1))
 #define PGROUNDDOWN(a) (((a)) & ~(PGSIZE-1))
+#define PGALIGNED(a) (((a) & (PGSIZE - 1)) == 0)
 
 #define PTE_V (1L << 0) // valid
 #define PTE_R (1L << 1)
@@ -363,3 +364,16 @@ typedef uint64 *pagetable_t; // 512 PTEs
 // Sv39, to avoid having to sign-extend virtual addresses
 // that have the high bit set.
 #define MAXVA (1L << (9 + 9 + 9 + 12 - 1))
+
+// map the trampoline page to the highest address
+// in both user and kernel space.
+#define USER_TOP (MAXVA)
+#define TRAMPOLINE (USER_TOP - PGSIZE)
+#define TRAPFRAME (TRAMPOLINE - PGSIZE)
+
+#define TRAP_PAGE_SIZE (4096)
+
+#define KERNBASE  0x80200000L
+#define PHYSTOP   (0x80000000 + 128 * 1024 * 1024) // 128M memory
+
+#define MAX_STR_LEN 200
