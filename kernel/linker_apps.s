@@ -1,8 +1,9 @@
     .align 4
     .section .data
-    .global _num_app
-_num_app:
+    .global _app_num
+_app_num:
     .quad 3
+
     .quad app_0_start
     .quad app_1_start
     .quad app_2_start
@@ -10,9 +11,15 @@ _num_app:
 
     .global _app_names
 _app_names:
-    .string "app_00"
-    .string "app_01"
-    .string "app_02"
+    .string "app0"
+    .string "app1"
+    .string "app2"
+    .string "usershell"
+    
+    .global INIT_PROC
+INIT_PROC:
+    .string "usershell"
+
 
     .section .data.app0
     .global app_0_start

@@ -79,7 +79,7 @@ void usertrapret(void) {
     // tell trap.s the user page table to switch to.
     uint64 satp = MAKE_SATP(get_cur_proc()->pagetable);
     uint64 fn = TRAMPOLINE + (__restore - trampoline);
-    printk("return to user : %x\n", trapframe->sepc);
+    // printk("return to user : %x\n", trapframe->sepc);
     ((void (*)(uint64, uint64))fn)(TRAPFRAME, satp);
 }
 
@@ -90,7 +90,7 @@ void usertrap(void) {
     set_kerneltrap();
 
     struct trapframe *trapframe = (get_cur_proc())->trapframe;
-    printk("trap from user epc = %x\n", trapframe->sepc);
+    // printk("trap from user epc = %x\n", trapframe->sepc);
     
     if ((r_sstatus() & SSTATUS_SPP) != 0) {
         panic("usertrap: not from user mode\n");
@@ -110,21 +110,24 @@ void usertrap(void) {
                 break;
         }
     } else {
-        printk("exception cause = %d\n", cause);
+        // printk("exception cause = %d\n", cause);
         
         switch (cause) {
-            case U_MODE_CALL:
+            case UserEnvCall:
                 trapframe->sepc += 4;
                 trapframe->regs.a0 = syscall(trapframe->regs.a7, trapframe->regs.a0, trapframe->regs.a1, trapframe->regs.a2);
                 break;
-            case ILLEGAL_INSTRUCTION:
-                panic("illegal instruction, kernel kill app\n");
+            case IllegalInstruction:
+                printk("illegal instruction, kernel kill app\n");
+                exit(-2);
                 break;
-            case STORE_AMO_ACCESS_FAULT:
-                panic("store/amo access fault, kernel kill app\n");
+            case StoreAmoAccessFault:
+                printk("store/amo access fault, kernel kill app\n");
+                exit(-7);
                 break;
-            case LOAD_ACCESS_FAULT:
+            case LoadAccessFault:
                 panic("load access fault, kernel kill app\n");
+                exit(-5);
             default:
                 unknown_trap("Exception");
                 break;

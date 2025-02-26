@@ -33,7 +33,7 @@ int main(void) {
 
     timer_init();
 
-    run_all_app();
+    load_init_app();
 
     scheduler();
 

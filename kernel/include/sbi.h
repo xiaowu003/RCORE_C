@@ -20,4 +20,14 @@ struct SbiRet {
     long value;
 };
 
+
+// sbi
+void                    sbi_console_putchar(int8 ch);
+
+// 推荐exit_code=0,=1时可以关闭，但是有报错 
+void                    sbi_shut_down(uint64 exit_code);
+void                    sbi_set_timer(uint64);
+void                    sbi_get_sbi_spec_version(void);
+int                     sbi_getchar();
+
 #endif /* sbi.h */

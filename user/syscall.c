@@ -52,3 +52,15 @@ void printf(int8* fmt) {
     }
     write(fmt, len);
 }
+
+uint64 fork(void) {
+    Usyscall(SYS_fork, 0, 0, 0, 0, 0, 0, 0);
+}
+
+uint64 exec(char* va) {
+    Usyscall(SYS_exec, (uint64)va, 0, 0, 0, 0, 0, 0);
+}
+
+uint64 wait(int pid, int *code) {
+    Usyscall(SYS_waitpid, (uint64)pid, (uint64)code, 0, 0, 0, 0, 0);
+}

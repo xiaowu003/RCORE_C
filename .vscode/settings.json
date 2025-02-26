@@ -12,6 +12,10 @@
         "time.h": "c",
         "user.h": "c",
         "utypes.h": "c",
-        "trap.h": "c"
+        "trap.h": "c",
+        "queue.h": "c",
+        "const.h": "c",
+        "string.h": "c",
+        "console.h": "c"
     }
 }

@@ -62,3 +62,7 @@ void sbi_get_sbi_spec_version(void) {
     spce_version = sbi_ecall(SBI_SPEC_VERSION, 0, 0, 0, 0, 0, 0, 0);
     printk("sbi version = 0x%x\n", spce_version.value);
 }
+
+int sbi_getchar() {
+    return sbi_ecall(SBI_CONSOLE_GETCHAR, 0, 0, 0, 0, 0, 0, 0).value;
+}

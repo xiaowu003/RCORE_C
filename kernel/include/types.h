@@ -15,7 +15,12 @@ typedef signed short    int16;
 typedef signed int      int32;
 typedef signed long     int64;
 
-#define NULL            0
+#define NULL            ((void *)0)
+
+typedef enum {
+    false,
+    true
+} bool;
 
 typedef uint64          pte_t;
 typedef uint64          pde_t;

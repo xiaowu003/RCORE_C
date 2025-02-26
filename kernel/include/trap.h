@@ -55,16 +55,23 @@ enum Interrupt {
     SupervisorExternal,
 };
 
-// Exception
-#define INSTRUCTION_ACCESS_FAULT        1
-#define ILLEGAL_INSTRUCTION             2
-#define LOAD_ACCESS_FAULT               5
-#define STORE_AMO_ADDRESS_MISALIGNED    6
-#define STORE_AMO_ACCESS_FAULT          7
-#define U_MODE_CALL                     8
-#define S_MODE_CALL                     9
-#define INSTRUCTION_PAGE_FAULT          12
-#define LOAD_PAGE_FAULT                 13
-#define STORE_AMO_PAGE_FAULT            15
+enum Exception {
+    InstructionMisaligned       =   0,
+    InstructionAccesFault       =   1,
+    IllegalInstruction          =   2,
+    Breakpoint                  =   3,
+    LoadAddressMisaligned       =   4,
+	LoadAccessFault             =   5,
+	StoreAmoMisaligned          =   6,
+	StoreAmoAccessFault         =   7,
+	UserEnvCall                 =   8,
+	SupervisorEnvCall           =   9,
+	MachineEnvCall              =   11,
+	InstructionPageFault        =   12,
+	LoadPageFault               =   13,
+	StorePageFault              =   15,
+};
+
+
 
 #endif  /*kernel/include/trap.h */

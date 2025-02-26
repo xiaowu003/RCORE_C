@@ -17,13 +17,10 @@ void clear_bss(void) {
 }
 
 int lib_main(void) {
-    // clear_bss();
 
-    // while (1) {}
-
-    printf("[user_lib] init ok\n");
-    // while (1) {}
-    printf("[user_lib] second test.\n");
+    printf("[APP] init ok\n");
+    printf("[APP] second test.\n");
+    
     exit(main());
     return 0;
 }

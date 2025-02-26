@@ -1,6 +1,7 @@
 #include "./include/types.h"
-#include "./include/riscv.h"
+#include "./include/virtual_memory.h"
 #include "./include/defs.h"
+#include "./include/riscv.h"
 
 extern char text_end[]; // linker_qemu.ld sets this to end of kernel code.
 extern char trampoline[];
@@ -105,12 +106,14 @@ void uvmunmap(pagetable_t pagetable, uint64 va, uint64 npages, int do_free) {
                 kfree((void *)pa);
             }
         }
+
+        *pte = 0;
     }
 }
 
 // 创建一个用户页表，然后将物理地址trampoline映射到页表的最顶端
 // 如果失败返回0， 成功则返回用户页表
-pagetable_t uvmcreate(void) {
+pagetable_t uvmcreate(uint64 trapframe) {
     pagetable_t pagetable;
     pagetable = (pagetable_t)kalloc();
     if (pagetable == 0) {
@@ -121,14 +124,21 @@ pagetable_t uvmcreate(void) {
     memset(pagetable, 0, PGSIZE);
 
     if (mappages(pagetable, TRAMPOLINE, PGSIZE, (uint64)trampoline, PTE_R | PTE_X) < 0) {
-        kfree(pagetable);
-        printk("uvmcreate: mappages error\n");
-        return 0;
+        // // kfree(pagetable);
+        // printk("uvmcreate: mappages error\n");
+        // return 0;
+        panic("trampoline map fail\n");
+    }
+
+    if (mappages(pagetable, TRAPFRAME, PGSIZE, trapframe, PTE_R | PTE_W) < 0) {
+        // printk("mappages fail\n");
+        panic("trapframe map fail\n");
     }
 
     return pagetable;
 }
 
+// 释放一个页表中所有的页
 void uvmfree(pagetable_t pagetable, uint64 max_page) {
     if (max_page > 0) {
         uvmunmap(pagetable, 0, max_page, 1);
@@ -143,7 +153,7 @@ pte_t* walk(pagetable_t pagetable, uint64 va, int alloc) {
     if (va >= MAXVA) {
         panic("walk");
     }
-
+    // uint64 i = 0;
     for (int level = 2; level > 0; level--) {
         pte_t *pte = &pagetable[PX(level, va)];
 
@@ -151,7 +161,8 @@ pte_t* walk(pagetable_t pagetable, uint64 va, int alloc) {
             pagetable = (pagetable_t)PTE2PA(*pte);
         } else {
             if (!alloc || (pagetable = (pde_t*)kalloc()) ==  0) {
-                printk("pagetable = %x\n", pagetable);
+                // printk("pagetable = %x\n", pagetable);
+                // panic("");
                 return 0;
             }
             memset(pagetable, 0, PGSIZE);
@@ -164,18 +175,27 @@ pte_t* walk(pagetable_t pagetable, uint64 va, int alloc) {
     return &pagetable[PX(0, va)];
 }
 
+
+// 取消页表中所有的PTE对物理地址的映射
 void freewalk(pagetable_t pagetable) {
     // 有2^9 = 512 PTES在这个页表中
+    // int flag = 0;
     for (int i = 0; i < 512; i++) {
+        
         pte_t pte = pagetable[i];
-        if ((pte & PTE_V) && (pte & (PTE_R | PTE_W | PTE_X) == 0)) {
+        if ((pte & PTE_V) && (pte & (PTE_R | PTE_W | PTE_X)) == 0) {
             // 这个pte指向下一级页表
             uint64 child = PTE2PA(pte);
             freewalk((pagetable_t)child);
             pagetable[i] = 0;
         } else if (pte & PTE_V) {
             panic("freewalk: leaf\n");
+            // flag = 1;
         }
+        // if (flag == 1) {
+        //     printk("leef : pagetable = 0x%x\n", pte);
+        //     flag = 0;
+        // }
     }
 
     kfree((void *)pagetable);
@@ -221,6 +241,93 @@ uint64 useraddr(pagetable_t pagetable, uint64 va) {
     
     // SV39中，va的最后12位是地址偏移量，物理页加上偏移就是该内存的位置
     return page | (va & 0xFFFULL);
+}
+
+
+// Used in fork
+// Copy the pagetable page and all the user pages.
+// return 0 on success, -1 on error.
+int uvmcopy(pagetable_t old, pagetable_t new, uint64 max_page) {
+    pte_t *pte;
+    uint64 pa, i;
+    uint flags;
+    char* mem;
+
+    for (i = 0; i < max_page * PGSIZE; i += PGSIZE) {
+        if ((pte = walk(old, i, 0)) == 0) {
+            continue;
+        }
+
+        if ((*pte & PTE_V) == 0) {
+            continue;
+        }
+
+        pa = PTE2PA(*pte);
+        flags = PTE_FLAGS(*pte);
+        
+        if ((mem = kalloc()) == 0) {
+            printk("uvmcopy kalloc error\n");
+            goto err;
+        }
+        memmove(mem, (char *)pa, PGSIZE);
+
+        if (mappages(new, i, PGSIZE, (uint64)mem, flags) != 0) {
+            kfree(mem);
+            printk("uvmcopy map new pagetable error\n");
+            goto err;
+        }
+    }
+
+    return 0;
+
+err:
+    uvmunmap(new, 0, i / PGSIZE, 1);
+    return -1;
+}
+
+// allocate PTEs and physical memory to grow process from oldsz to newsz,
+// which need not be page aligned. Return new size or 0 on error.
+uint64 uvmalloc(pagetable_t pagetable, uint64 oldsz, uint64 newsz, int xperm) {
+    char *mem;
+    uint64 a;
+    
+    if (newsz < oldsz) {
+        return oldsz;
+    }
+
+    oldsz = PGROUNDUP(oldsz);
+    for (a = oldsz; a < newsz; a += PGSIZE) {
+        mem = kalloc();
+        if (mem == 0) {
+            uvmdealloc(pagetable, a, oldsz);
+            return 0;
+        }
+        memset(mem, 0, PGSIZE);
+        if (mappages(pagetable, a, PGSIZE, (uint64)mem, PTE_R|PTE_U|xperm) != 0) {
+            kfree(mem);
+            uvmdealloc(pagetable, a, oldsz);
+            return 0;
+        }
+    }
+
+    return newsz;
+}
+
+// deallocate user pages to bring the process size from oldsz to
+// newsz. Oldsz and newsz need not be page-aligned, nor does newsz
+// need to be less than oldsz. Oldsz can be larger than the actual
+// process size. Return the new process size.
+uint64 uvmdealloc(pagetable_t pagetable, uint64 oldsz, uint64 newsz) {
+    if (newsz >= oldsz) {
+        return oldsz;
+    }
+
+    if (PGROUNDUP(newsz) < PGROUNDUP(oldsz)) {
+        int npages = (PGROUNDUP(oldsz) - PGROUNDUP(newsz)) / PGSIZE;
+        uvmunmap(pagetable, PGROUNDUP(newsz), npages, 1);
+    }
+
+    return newsz;
 }
 
 

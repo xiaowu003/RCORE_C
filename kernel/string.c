@@ -1,5 +1,5 @@
 #include "./include/types.h"
-#include "./include/defs.h"
+#include "./include/string.h"
 
 uint32 strlen(const int8 *src) {
     uint32 i;
@@ -105,6 +105,32 @@ int8* strcpy(int8 *dest, const int8 *src) {
     *temp = '\0';
 
     return dest;
+}
+
+// 复制t的前n个字符到s中
+char* strncpy(char *s, const char *t, int n) {
+    char *os;
+
+    os = s;
+    while (n-- > 0 && (*s++ = *t++) != 0) { }
+    while (n-- > 0) {
+        *s++ = 0;
+    }
+    return os;
+}
+
+int strncmp(const char *p, const char *q, uint64 n) {
+    while (n > 0 && *p && *p == *q) {
+        n--;
+        p++;
+        q++;
+    }
+
+    if (n == 0) {
+        return 0;
+    }
+
+    return (uint8)*p - (uint8)*q;
 }
 
 int8 *strcat(int8 *dest, const int8 *src) {
