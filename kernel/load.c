@@ -4,6 +4,8 @@
 #include "./include/trap.h"
 #include "./include/load.h"
 #include "./include/defs.h"
+#include "./include/file.h"
+#include "./include/fs.h"
 
 
 extern char _app_num[], _app_names[], boot_stack_top[], kernel_end[], INIT_PROC[];
@@ -118,23 +120,96 @@ int loader(int app_id, struct Proc *p) {
     return load_app_pgtbl(app_info_ptr[app_id], app_info_ptr[app_id + 1], p);
 }
 
-int load_init_app(void) {
-    int id = get_id_by_name("app0");
-    if (id < 0) {
-        printk("Cannot find INIT PROC %s", INIT_PROC);
-        panic("");
+int bin_loader(struct inode *ip, struct Proc *p) {
+    ivalid(ip);
+
+    void *page;
+    uint64 length = ip->size;
+    uint64 va_start = APP_BASE_ADDRESS_VA;
+    uint64 va_end = PGROUNDUP(APP_BASE_ADDRESS_VA + length);
+
+    // printk("before for loop\n");
+
+    for (uint64 va = va_start, off = 0; va < va_end; 
+                                va += PGSIZE, off += PGSIZE) {
+        page = kalloc();
+        if (page == 0) {
+            panic("load app alloc page error\n");
+        }
+
+        readi(ip, 0, (uint64)page, off, PGSIZE);
+        if (off + PGSIZE > length) {
+            memset(page + (length - off), 0, PGSIZE - (length - off));
+        }
+        if (mappages(p->pagetable, va, PGSIZE, (uint64)page,
+                        PTE_U |PTE_W | PTE_R |PTE_X) != 0) {
+            panic("laod app map error\n");
+        }
     }
 
-    struct Proc *p = allocate_proc();
-    if (p == NULL) {
-        panic("load init app allocproc error\n");
+    // map ustack
+    p->ustack = va_end + PGSIZE;
+    for (uint64 va = p->ustack; va < p->ustack + USER_STACK_SIZE; va += PGSIZE) {
+        page = kalloc();
+        if (page == 0) {
+            panic("load bin kalloc error\n");
+        }
+
+        memset(page, 0, PGSIZE);
+        if (mappages(p->pagetable, va, PGSIZE, (uint64)page,
+                    PTE_U | PTE_R | PTE_W) != 0) {
+            panic("user stack map error\n");
+        }
     }
 
-    // printk("load init proc %d\n", id);
+    p->trapframe->regs.sp = p->ustack + USER_STACK_SIZE;
+    p->trapframe->sepc = va_start;
+    p->max_page = PGROUNDUP(p->ustack + USER_STACK_SIZE - 1) / PGSIZE;
+    p->state = RUNNABLE;
 
-    loader(id, p);
-
-    add_task(p);
-    // printk("load_init_app ok\n");
     return 0;
 }
+
+int load_init_app(void) {
+    struct inode *ip;
+    struct Proc *p = allocate_proc();
+
+    init_stdio(p);  // 初始化标准输入输出和错误
+
+    if ((ip = namei(INIT_PROC)) == 0) {
+        printk("invalid init proc name\n");
+        return -1;
+    }
+
+    printk("load init app %s", INIT_PROC);
+    bin_loader(ip, p);
+    iput(ip);
+
+    char *argv[2];
+    argv[0] = INIT_PROC;
+    argv[1] = NULL;
+    p->trapframe->regs.a0 = push_argv(p, argv);
+    add_task(p);
+    return 0;
+}
+
+// int load_init_app(void) {
+//     int id = get_id_by_name("app0");
+//     if (id < 0) {
+//         printk("Cannot find INIT PROC %s", INIT_PROC);
+//         panic("");
+//     }
+
+//     struct Proc *p = allocate_proc();
+//     if (p == NULL) {
+//         panic("load init app allocproc error\n");
+//     }
+
+//     // printk("load init proc %d\n", id);
+
+//     loader(id, p);
+
+//     add_task(p);
+//     // printk("load_init_app ok\n");
+//     return 0;
+// }

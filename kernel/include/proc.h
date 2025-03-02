@@ -5,6 +5,7 @@
 
 #define NPROC       (512)
 #define OS_PID      (0)
+#define FD_BUFFER_SIZE  (16)
 
 enum ProcStatus {
     UNUSED,     // 未初始化
@@ -48,14 +49,18 @@ struct Proc {
     uint64                  max_page;               // memory size
     struct Proc *           parent;                 // parent process
     uint64                  exit_code;              // process exit code
+    struct file *           files[FD_BUFFER_SIZE];  // File descriptor table, \
+                                                    // using to record the files opened by the process    
 };
 
 
 // proc.c
+int                     cpuid(void);
 int                     getpid(void);
 void                    proc_init(void);
 int                     allocpid(void);
 struct Proc*            allocate_proc(void);
+int                     init_stdio(struct Proc *p);
 struct Proc*            get_cur_proc(void);
 struct Proc*            fetch_task(void);
 void                    add_task(struct Proc *p);
@@ -65,8 +70,10 @@ void                    sched(void);
 void                    freepagetable(pagetable_t pagetable, uint64 max_page);
 void                    freeproc(struct Proc *p);
 int                     fork(void);
+int                     push_argv(struct Proc *p, char **argv);
 int                     exec(char *name);
 int                     wait(int pid, int *code);
 void                    exit(int code);
+int                     fdalloc(struct file *f);
 
 #endif

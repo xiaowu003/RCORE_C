@@ -4,33 +4,65 @@
 #include "./include/defs.h"
 #include "./include/syscall.h"
 #include "./include/proc.h"
+#include "./include/plic.h"
 
 extern char trampoline[], __alltraps[], __restore[];
 
-void kerneltrap(void) {
+void devintr(uint64 cause) {
+    int irq;
+    switch (cause) {
+        case SupervisorTimer:
+            set_next_10ms_timer();
+            
+            // if form user, allow yield
+            if ((r_sstatus() & SSTATUS_SPP) == 0) {
+                yield();
+            }
+            break;
 
-    if ((r_sstatus() & SSTATUS_SPP) == 0) {
+        case SupervisorExternal:
+            irq = plic_claim();
+            if (irq == UART0_IRQ) {
+                // do nothing
+            } else if (irq == VIRTIO0_IRQ) {
+                virtio_disk_intr();
+            } else if (irq) {
+                printk("unexpected interrupt irq=%d\n", irq);
+            }
+
+            if (irq) {
+                plic_complete(irq);
+            }
+            break;
+        default:
+            unknown_trap("interrupt");
+            break;
+    }
+}
+
+void kerneltrap(void) {
+    uint64 sepc = r_sepc();
+    uint64 sstatus = r_sstatus();
+    uint64 scause = r_scause();
+
+    printk("kernel trap: epc=0x%x, cause=%d", sepc, scause);
+    
+    if ((sstatus & SSTATUS_SPP) == 0) {
         panic("kerneltrap: not from supervisor mode\n");
     }
 
-    uint64 cause  = r_scause();
-    printk("case = %d, %x\n",cause, cause);
-
-    if (cause & (1ULL << 63)) {
-        cause &= ~(1ULL << 63);
-        switch (cause) {
-            case SupervisorTimer:
-                printk("time interrupt!\n");
-                set_next_10ms_timer();
-                yield();
-                break;
-            default:
-                unknown_trap("interrupt");
-                break;
-        }
+    if (scause & (1ULL << 63)) {
+        devintr(scause & 0xff);
+    } else {
+        printk("invalid trap from kernel: 0x%x, stval = 0x%x, \
+             sepc = 0x%x\n", scause, r_stval(), sepc);
+        exit(-1);
     }
 
-    panic("trap from kernel\n");
+    // the yield() may have cause some traps to occur,
+    // so restore trap registers for use by kernelvec.s's sepc instruction.
+    w_sepc(sepc);
+    w_sstatus(sstatus);
 }
 
 void set_kerneltrap(void) {
@@ -49,12 +81,14 @@ void unknown_trap(char *trap_type) {
     sbi_shut_down(1);
 }
 
+// set up to take exceptions and traps while in the kernel.
 void trap_init(void) {
     // printk("[KERNEL->trap_init] trap.__alltraps = 0x%x\n", (uint64)__alltraps);
 
     // 重定向trap函数
     // w_stvec((uint64)__alltraps);
     set_kerneltrap();
+    w_sie(r_sie() | SIE_SEIE | SIE_SSIE | SIE_STIE);
     printk("[K->trap_init] ok\n");
 }
 
@@ -136,51 +170,3 @@ void usertrap(void) {
     
     usertrapret();
 }
-
-
-
-// struct trapframe *trap_handler(TrapContext *cx) {
-//     printk("[KERNEL->trap_handler] trap handler\n");
-//     uint64 scause = r_scause();
-//     uint64 stval = r_stval();
-
-//     printk("[KERNEL->trap_handler] scause = 0x%x\n", scause);
-//     printk("[KERNEL->trap_handler] stval = 0x%x\n", stval);
-    
-//     // 根据原因处理trap
-//     uint64 trap = scause & 0x0fff;
-//     if (scause & (1ULL << 63)) {
-//         // interrupt
-//         scause &= ~(1ULL << 63);
-//         switch (scause) {
-//             case SupervisorTimer:
-//                 printk("[KERNEL->trap_handler] timer interrupt\n");
-//                 set_next_10ms_timer();
-//                 yield();
-//                 break;
-//             default:
-//                 unknown_trap("Interrupt");
-//                 break;
-//         }
-//     } else {
-//         switch (trap) {
-//             case U_MODE_CALL:
-//                 cx->sepc += 4;
-//                 cx->regs.a0 = syscall(cx->regs.a7, cx->regs.a0, cx->regs.a1, cx->regs.a2);
-//                 break;
-//             case ILLEGAL_INSTRUCTION:
-//                 panic("illegal instruction, kernel kill app\n");
-//                 break;
-//             case STORE_AMO_ACCESS_FAULT:
-//                 panic("store/amo access fault, kernel kill app\n");
-//                 break;
-//             case LOAD_ACCESS_FAULT:
-//                 panic("load access fault, kernel kill app\n");
-//             default:
-//                 unknown_trap("Exception");
-//                 break;
-//         }
-//     }
-//     return cx;
-// }
-

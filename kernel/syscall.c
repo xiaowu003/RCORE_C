@@ -5,6 +5,7 @@
 #include "timer.h"
 #include "riscv.h"
 #include "console.h"
+#include "file.h"
 
 int64 sys_write(uint64 va, uint32 len) {
     struct Proc *p = get_cur_proc();
@@ -95,6 +96,15 @@ uint64 sys_waitpid(int pid, uint64 va) {
     struct Proc *p = get_cur_proc();
     int *code = (int *)useraddr(p->pagetable, va);
     return wait(pid, code);
+}
+
+uint64 sys_getpid() {
+    return get_cur_proc()->pid;
+}
+
+uint64 sys_getppid(void) {
+    struct Proc *p = get_cur_proc();
+    return p->parent == NULL ? OS_PID : p->parent->pid;
 }
 
 int64 syscall(uint64 id, uint64 arg0, uint64 arg1, uint64 arg2) {

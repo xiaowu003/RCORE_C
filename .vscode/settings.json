@@ -16,6 +16,12 @@
         "queue.h": "c",
         "const.h": "c",
         "string.h": "c",
-        "console.h": "c"
+        "console.h": "c",
+        "plic.h": "c",
+        "virtio.h": "c",
+        "fs.h": "c",
+        "file.h": "c",
+        "bio.h": "c",
+        "random": "c"
     }
 }

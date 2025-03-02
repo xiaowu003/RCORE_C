@@ -3,6 +3,7 @@
 #include "riscv.h"
 #include "load.h"
 #include "proc.h"
+#include "file.h"
 
 extern char __restore[];
 extern char boot_stack_top[];
@@ -18,6 +19,10 @@ __attribute__((aligned(4096))) char trapframe_all[NPROC][TRAP_PAGE_SIZE];
 struct Proc os_proc;
 struct Proc *current_proc;
 struct queue task_queue;
+
+int cpuid(void) {
+    return 0;
+}
 
 int getpid(void) {
     return get_cur_proc()->pid;
@@ -39,11 +44,13 @@ void proc_init(void) {
     init_queue(&task_queue);
 }
 
+
 int allocpid(void) {
     static int PID = 1;
     return PID++;
 }
 
+// 从进程池中分配一个未使用的进程，并进行一些初始化
 struct Proc *allocate_proc(void) {
     struct Proc *p;
     for (p = proc; p < &proc[NPROC]; p++) {
@@ -51,6 +58,7 @@ struct Proc *allocate_proc(void) {
             p->state = USED;
             p->pid = allocpid();
             p->pagetable = uvmcreate((uint64)p->trapframe);
+            memset((void *)p->kstack, 0, KERNEL_STACK_SIZE);
             p->ustack = 0;
             memset((void *)p->trapframe, 0, sizeof(p->trapframe));
             memset(&p->context, 0, sizeof(p->context));
@@ -59,12 +67,25 @@ struct Proc *allocate_proc(void) {
             p->max_page = 0;
             p->parent = NULL;
             p->exit_code = 0;
+            memset((void *)p->files, 0, sizeof(struct file *) * FD_BUFFER_SIZE);
             return p;
         }
     }
     return 0;
 }
 
+// 将标准输入0/输出1/错误2抽象成三个文件，返回0
+int init_stdio(struct Proc *p) {
+    for (int i = 0; i < 3; i++) {
+        if (p->files[i] != NULL) {
+            return -1;
+        }
+        p->files[i] = stdio_init(i);
+    }
+    return 0;
+}
+
+// 返回当前运行的用户态进程的任务控制块
 struct Proc *get_cur_proc(void) {
     return current_proc;
 }
@@ -178,6 +199,44 @@ int fork(void) {
     return np->pid;
 }
 
+#define MAX_ARG_NUM (32) // max exec arguments
+int push_argv(struct Proc *p, char **argv)
+{
+	uint64 argc, ustack[MAX_ARG_NUM + 1];
+	uint64 sp = p->ustack + USER_STACK_SIZE, spb = p->ustack;
+	// Push argument strings, prepare rest of stack in ustack.
+	for (argc = 0; argv[argc]; argc++) {
+		if (argc >= MAX_ARG_NUM)
+			panic("...");
+		sp -= strlen(argv[argc]) + 1;
+		sp -= sp % 16; // riscv sp must be 16-byte aligned
+		if (sp < spb) {
+			panic("...");
+		}
+		if (copyout(p->pagetable, sp, argv[argc],
+			    strlen(argv[argc]) + 1) < 0) {
+			panic("...");
+		}
+		ustack[argc] = sp;
+	}
+	ustack[argc] = 0;
+	// push the array of argv[] pointers.
+	sp -= (argc + 1) * sizeof(uint64);
+	sp -= sp % 16;
+	if (sp < spb) {
+		panic("...");
+	}
+	if (copyout(p->pagetable, sp, (char *)ustack,
+		    (argc + 1) * sizeof(uint64)) < 0) {
+		panic("...");
+	}
+	p->trapframe->regs.a1 = sp;
+	p->trapframe->regs.sp = sp;
+	// clear files ?
+	return argc; // this ends up in a0, the first argument to main(argc, argv)
+}
+
+
 // 执行指定名称的新进程
 int exec(char *name) {
     int id = get_id_by_name(name);
@@ -248,4 +307,18 @@ void exit(int code) {
     }
 
     sched();
+}
+
+int fdalloc(struct file *f)
+{
+	printk("debugf f = 0x%x, type = %d", f, f->type);
+	struct Proc *p = get_cur_proc();
+	for (int i = 0; i < FD_BUFFER_SIZE; ++i) {
+		if (p->files[i] == NULL) {
+			p->files[i] = f;
+			printk("debugf fd = %d, f = 0x%x", i, p->files[i]);
+			return i;
+		}
+	}
+	return -1;
 }

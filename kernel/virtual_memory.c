@@ -56,6 +56,12 @@ pagetable_t kvmmake(void) {
     pagetable_t kpgtbl;
     kpgtbl = (pagetable_t)kalloc();
     memset(kpgtbl, 0, PGSIZE);
+
+    // virtio mmio disk interface, 采用直接映射的方法
+    kvmmap(kpgtbl, VIRTIO0, VIRTIO0, PGSIZE, PTE_R | PTE_W);
+
+    // PLIC-平台基本中断控制器
+    kvmmap(kpgtbl, PLIC, PLIC, 0x400000, PTE_R | PTE_W);
     
     // map kernel text executable and read-only.
     kvmmap(kpgtbl, KERNBASE, KERNBASE, 
@@ -423,3 +429,32 @@ int copyinstr(pagetable_t pagetable, char *dst, uint64 srcva, uint64 max) {
 
     return len;
 }
+
+// Copy to either a user address, or kernel address,
+// depending on usr_dst.
+// Returns 0 on success, -1 on error.
+int either_copyout(int user_dst, uint64 dst, char *src, uint64 len)
+{
+	struct Proc *p = get_cur_proc();
+	if (user_dst) {
+		return copyout(p->pagetable, dst, src, len);
+	} else {
+		memmove((void *)dst, src, len);
+		return 0;
+	}
+}
+
+// Copy from either a user address, or kernel address,
+// depending on usr_src.
+// Returns 0 on success, -1 on error.
+int either_copyin(int user_src, uint64 src, char *dst, uint64 len)
+{
+	struct Proc *p = get_cur_proc();
+	if (user_src) {
+		return copyin(p->pagetable, dst, src, len);
+	} else {
+		memmove(dst, (char *)src, len);
+		return 0;
+	}
+}
+

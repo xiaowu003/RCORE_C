@@ -1,5 +1,6 @@
 #include "./include/types.h"
 #include "./include/defs.h"
+#include "./include/file.h"
 
 extern void bss_start(void);
 extern void bss_end(void);
@@ -20,20 +21,25 @@ void clear_bss() {
 
 int main(void) {
     clear_bss();
-
     proc_init();
-    
     kernel_init();
-
     kvm_init();
-
-    load_init();
-
+    // load_init();
     trap_init();
-
+    printk("begin file\n");
+    plicinit();
+    printk("plic ok\n");
+    virtio_disk_init();
+    printk("v disk ok\n");
+    binit();
+    printk("binit ok\n");
+    fsinit();
+    printk("finish file\n");
     timer_init();
 
     load_init_app();
+
+    show_all_files();
 
     scheduler();
 

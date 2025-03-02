@@ -11,4 +11,7 @@
 #define SYS_fork            220
 #define SYS_waitpid         260
 
+#define SYS_open            56
+#define SYS_close           57
+
 #endif

@@ -34,11 +34,22 @@ int32 memcmp(const void *src1, const void *src2, uint64 len) {
     return 0;
 }
 
-void memmove(uint8 *dest, const uint8 *src, uint64 len) {
-    uint8* temp = dest;
-    for ( ; len > 0; len--) {
-        *temp++ = *src++;
-    }
+void* memmove(void *dest, const void *src, uint64 n) {
+	const char *s;
+	char *d;
+
+	s = src;
+	d = dest;
+	if (s < d && s + n > d) {
+		s += n;
+		d += n;
+		while (n-- > 0)
+			*--d = *--s;
+	} else
+		while (n-- > 0)
+			*d++ = *s++;
+
+	return dest;
 }
 
 void* memset(void *dest, uint8 val, uint32 len) {

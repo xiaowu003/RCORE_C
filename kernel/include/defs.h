@@ -9,6 +9,8 @@
 #include "load.h"
 #include "virtual_memory.h"
 #include "console.h"
+#include "plic.h"
+#include "virtio.h"
 
 struct TrapContext;
 struct SbiRet;

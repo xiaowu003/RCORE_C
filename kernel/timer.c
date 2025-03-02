@@ -26,10 +26,6 @@ uint64 get_time_us(void) {
 // 设置'sie.stie'，使得S特权级时钟中断不会被屏蔽
 void enable_timer_interrupt(void) {
     w_sie(r_sie() | SIE_STIE);
-    // int x = r_sstatus();
-    // x &= ~(SSTATUS_SPP);
-    // x |= SSTATUS_SPIE;
-    // w_sstatus(x);
 }
 
 void timer_init(void) {

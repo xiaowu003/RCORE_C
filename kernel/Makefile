@@ -28,7 +28,13 @@ SRC_FILES = ./start.s		\
 			./kalloc.c		\
 			./virtual_memory.c	\
 			./queue.c 			\
-			./console.c
+			./console.c		\
+			./bio.c 		\
+			./file.c		\
+			./fs.c 			\
+			./kernelvec.s 	\
+			./plic.c    	\
+			./virtio_disk.c 
 
 
 SRC_LINKER = ./linker_qemu.ld
@@ -63,7 +69,9 @@ dasm:
 	${OBJDUMP} -d ${TARGET_ELF} > ${TARGET_ASM}
 
 run : objcopy dasm
-	qemu-system-riscv64 -machine virt -nographic -bios $(SBI_BIN) -device loader,file=${TARGET_BIN},addr=${BASE_ADDRESS}
+	qemu-system-riscv64 -machine virt -nographic -bios $(SBI_BIN) -device loader,file=${TARGET_BIN},addr=${BASE_ADDRESS} \
+	-drive file=../nfs/fs.img,if=none,format=raw,id=x0 \
+    -device virtio-blk-device,drive=x0,bus=virtio-mmio-bus.0
 
 rung: objcopy dasm
 	qemu-system-riscv64 -machine virt -nographic -bios $(SBI_BIN) -device loader,file=${TARGET_BIN},addr=${BASE_ADDRESS} -s -S

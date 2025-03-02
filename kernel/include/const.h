@@ -46,10 +46,4 @@
 #define MAX_APP_NUM (32)
 #define MAX_STR_LEN (200)
 
-enum {
-	STDIN = 0,
-	STDOUT = 1,
-	STDERR = 2,
-};
-
 #endif  // const.h

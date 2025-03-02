@@ -19,6 +19,7 @@ uint64                  uvmdealloc(pagetable_t pagetable, uint64 oldsz, uint64 n
 int                     copyout(pagetable_t, uint64, char *, uint64);
 int                     copyin(pagetable_t, char *, uint64 , uint64);
 int                     copyinstr(pagetable_t pagetable, char *dst, uint64 srcva, uint64 max);
-
+int                     either_copyout(int user_dst, uint64 dst, char *src, uint64 len);
+int                     either_copyin(int user_src, uint64 src, char *dst, uint64 len);
 
 #endif
